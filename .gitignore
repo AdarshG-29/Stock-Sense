@@ -1,9 +1,25 @@
-#Node modules
+# Node modules (all subfolders)
 **/node_modules/
 
-#Build output
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# Mac specific
+.DS_Store
+
+# Coverage reports (if running tests in any folder)
+**/coverage/
+
+# Build outputs common across folders
 **/dist/
 **/build/
-
-#Logs
-*.log
+**/.next/
+**/out/
