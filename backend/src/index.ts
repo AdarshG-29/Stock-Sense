@@ -3,18 +3,20 @@ import cors from 'cors';
 import authRoutes from './routes/auth';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import { AUTH_URL } from './constants/apiEndPoints';
 
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: "*", credentials: true }));
+
 
 //middlewares
 app.use(express.json());
 app.use(cookieParser())
 
 //Routes
-app.use("/api/auth", authRoutes);
+app.use(AUTH_URL, authRoutes);
 
 app.get("/", (req, res) => {
     res.send("Server running");

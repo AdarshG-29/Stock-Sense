@@ -42,7 +42,7 @@ export const loginUser = async (req: Request, res: Response) => {
         const token = jwt.sign({userId: user.id, email: user.email}, process.env.JWT_SECRET!, {expiresIn: '1h'});
 
         //store token in httpOnly cookie
-        res.cookie('token', token, {
+        res.cookie('authToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // set secure flag in production
             sameSite: 'lax', // CSRF protection
