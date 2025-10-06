@@ -1,52 +1,34 @@
 'use client'
 import React, { useEffect } from 'react'
+import { useUserDataStore } from '@/stores/userData/store'
+import { getUserData, onLogout } from '@/services/authActions'
+import Login from './LoginPopup'
+import Signup from './Signup'
 import { Button } from '@/components/ui/button'
-import { getUser, loginUser, registerUser } from '@/services/apis'
 
 const Header = () => {
-    const onLogin = async () => {
-        try {
-            const res = await loginUser({email: 'adarsh12@gmail.com', password: 'password'}) 
-            console.log(res)
-        }
-        catch (error) {
-            console.log(error);
-        }
-    }
-
-    const onSignUp = async() => {
-        try{
-            const res = await registerUser({username: 'Adarsh12', email: 'adarsh12@gmail.com', password: 'password'})
-            console.log(res)
-        }
-        catch (error) {
-            console.log(error);
-        }
-    }
     useEffect(() => {
-        const handleUser = async () => {
-            try {
-                const res = await getUser();
-                console.log(res);
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
-        handleUser();
+        getUserData();
     },[])
+
+    const name = useUserDataStore.use.name();
+    const userId = useUserDataStore.use.userId();
 
 return (
     <header className="header flex justify-between items-center w-full px-4 py-8">
           <div className="header__logo text-xl font-bold">Stock-Sense</div>
-          <div className="header__actions flex gap-4">
-            <Button size={'lg'} onClick={onLogin}>
-              <span className='text-lg'>Login</span>
-            </Button>
-            <Button size={'lg'} onClick={onSignUp}>
-              <span className='text-lg'>Sign up</span>
-            </Button>
+          {userId 
+          ? 
+          <div className='flex items-center gap-6'>
+            <span className='text-sm font-medium text-gray-700'>{`Hello ${name}`}</span>
+            <Button variant="default" onClick={onLogout}>Logout</Button>
         </div>
+        :
+        <div className="flex items-center gap-6">
+            <Login />
+            <Signup />
+          </div>          
+          }
     </header>
 );
 }

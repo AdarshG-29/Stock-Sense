@@ -1,5 +1,5 @@
-import LOCAL_STORAGE_KEYS from '@/constants/localStorageKeys';
 import axios from 'axios';
+import { getAuthTokenFromLocalStorage } from './localStorageStates';
 
 const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
     (config) => {
-        const authToken = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+        const authToken = getAuthTokenFromLocalStorage();
         if(authToken){
             config.headers['Authorization'] = `Bearer ${authToken}`;
         }

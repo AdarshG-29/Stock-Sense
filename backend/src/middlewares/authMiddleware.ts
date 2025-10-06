@@ -7,7 +7,7 @@ import { CustomRequest, JwtPayload } from '../types/authTypes';
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     try{
         // 1. check cookie
-        const tokenFromCookie = req.cookies?.token;
+        const tokenFromCookie = req.cookies?.authToken;
 
         // 2. check authorization header
         const authHeader = req.headers['authorization'];

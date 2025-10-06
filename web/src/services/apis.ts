@@ -1,6 +1,6 @@
 import axiosInstance from "@/lib/axiosInstance";
 
-export const registerUser = (userData: { username: string; email: string; password: string }) => {
+export const registerUser = (userData: { name: string; email: string; password: string }) => {
     const url = '/auth/register';
     return axiosInstance.post(url, userData)
 }

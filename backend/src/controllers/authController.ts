@@ -10,12 +10,28 @@ export const registerUser = async (req: Request, res: Response) => {
     const {name, email, password} = req.body;
     try{
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        const result =  await pool.query(
+        await pool.query(
             'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, email',
             [name, email, hashedPassword]
         )
+        const result = await pool.query(" SELECT * FROM users WHERE email = $1", [email]);
 
-        res.status(201).json({message: 'User registered successfully', user: result.rows[0]});
+        if(result.rows.length === 0){
+            return res.status(400).json({error: "Something went wrong"});
+        }
+        const user = result.rows[0];
+
+        const token = jwt.sign({userId: user.id, email: user.email, name: user.name}, process.env.JWT_SECRET!, {expiresIn: '1h'});
+
+        //store token in httpOnly cookie
+        res.cookie('authToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // set secure flag in production
+            sameSite: 'lax', // CSRF protection
+            maxAge: 60 * 60 * 1000 // 1 hour
+        })
+
+        res.status(201).json({message: 'User registered successfully', token});
     }
     catch(err: any){
         if(err.code === '23505'){
@@ -39,7 +55,7 @@ export const loginUser = async (req: Request, res: Response) => {
             return res.status(400).json({error: "Wrong password"});
         }
 
-        const token = jwt.sign({userId: user.id, email: user.email}, process.env.JWT_SECRET!, {expiresIn: '1h'});
+        const token = jwt.sign({userId: user.id, email: user.email, name: user.name}, process.env.JWT_SECRET!, {expiresIn: '1h'});
 
         //store token in httpOnly cookie
         res.cookie('authToken', token, {
@@ -58,12 +74,12 @@ export const loginUser = async (req: Request, res: Response) => {
 
 
 export const logoutUser = (req: Request, res: Response) => {
-    res.clearCookie('token');
+    res.clearCookie('authToken');
     res.json({message: "Logout successful"});
 }
 
 
 export const getUser = (req: Request, res: Response) => {
 const user = (req as CustomRequest).user;
-res.json({user: {userId: user.userId, email: user.email}});
+res.json({user: {userId: user.userId, email: user.email, name: user.name} });
 }   
