@@ -17,7 +17,7 @@ export const onSignup = async (name: string, email: string, password: string) =>
     }
     catch (error: any) {
         console.log(error);
-        toast.error(error?.response.data.error);
+        toast.error(error?.response?.data?.error);
     }
 }
 
@@ -32,7 +32,7 @@ export const onLogin = async (email: string, password: string) => {
         toast.success(message || 'Login successful');
     }
     catch (error: any) {
-        toast.error(error?.response.data.error || 'Error logging in. Please try again.');
+        toast.error(error?.response?.data?.error || 'Error logging in. Please try again.');
     }
 }
 
@@ -43,7 +43,7 @@ export const onLogout = async () => {
         clearUserData();
         clearAllLocalStorage();
     } catch(error: any) {
-        toast.error(error?.response.data.error || 'Error logging out. Please try again.');
+        toast.error(error?.response?.data?.error || 'Error logging out. Please try again.');
     }
 }
 
@@ -60,6 +60,6 @@ export const getUserData = async () => {
       setUserInfoToLocalStorage(userData);
       setUserData(userData);
     } catch(error: any) {
-        console.error(error?.response.data.error);
+        console.error(error?.response?.data?.error);
     }
 }
