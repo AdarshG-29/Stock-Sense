@@ -24,7 +24,7 @@ export const getHistoricalCandleData = async ({
     unit: string;
     interval: number;
     to_date: string; // format: 'YYYY-MM-DD'
-    from_date?: string; // format: 'YYYY-MM-DD'
+    from_date: string | undefined; // format: 'YYYY-MM-DD'
 }) => {
     const url = `/historical-candle/${instrument_key}/${unit}/${interval}/${to_date}${from_date ? `/${from_date}` : ''}`;
     const headers = await getHeaders();

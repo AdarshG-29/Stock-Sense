@@ -6,9 +6,13 @@ const cache = new NodeCache();
 const ttl = 3600; //cache for 1 hour
 
 export const getHistoricCandleData = async (req: Request, res: Response) => {
-    const {instrument_key, unit, interval, to_date, from_date} = req.body;  
+    const instrument_key = req.query.instrument_key as string;
+    const unit = req.query.unit as string;
+    const interval = req.query.interval as string;
+    const to_date = req.query.to_date as string;
+    const from_date = req.query.from_date as string | undefined;
 
-    if(!instrument_key || !unit || !interval || !to_date){
+    if(!instrument_key || !unit || !interval || Number.isNaN(Number(interval)) ||!to_date){
         return res.status(400).json({error: "Missing required parameters"});
     }
 
@@ -19,7 +23,7 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
     }
     
     try{
-        const response = await getHistoricalCandleData({instrument_key: encodeURIComponent(instrument_key), unit, interval, to_date, from_date});
+        const response = await getHistoricalCandleData({instrument_key, unit, interval: Number(interval), to_date, from_date});
         const {data, status} = response;
         if(status === 200){
             cache.set(cacheKey, data, ttl); 
@@ -31,9 +35,11 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
 }
 
 export const getTodayCandleData = async (req: Request, res: Response) => {
-    const {instrument_key, unit, interval} = req.body;  
+    const instrument_key = req.query.instrument_key as string;
+    const unit = req.query.unit as string;
+    const interval = req.query.interval as string;
 
-    if(!instrument_key || !unit || !interval){
+    if(!instrument_key || !unit || !interval || Number.isNaN(Number(interval))){
         return res.status(400).json({error: "Missing required parameters"});
     }
 
@@ -44,7 +50,7 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
     }
     
     try{
-        const response = await getCurrentTradingDayCandleData({instrument_key: encodeURIComponent(instrument_key), unit, interval});
+        const response = await getCurrentTradingDayCandleData({instrument_key, unit, interval: Number(interval)});
         const {data, status} = response;
         if(status === 200){
             cache.set(cacheKey, data, ttl); 
