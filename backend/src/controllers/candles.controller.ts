@@ -25,9 +25,20 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
     try{
         const response = await getHistoricalCandleData({instrument_key, unit, interval: Number(interval), to_date, from_date});
         const {data, status} = response;
+        const ohlcData = {
+            candles: data.data.candles.map((candle: any[]) => ({
+            timestamp: candle?.[0] ?? 0,
+            open: candle?.[1] ?? 0,
+            high: candle?.[2] ?? 0,
+            low: candle?.[3] ?? 0,
+            close: candle?.[4] ?? 0,
+            volume: candle?.[5] ?? 0,
+            derivativeCount: candle?.[6] ?? 0,
+            })),
+        };
         if(status === 200){
-            cache.set(cacheKey, data, ttl); 
-            return res.json({data, source: 'upstox'});
+            cache.set(cacheKey, ohlcData, ttl); 
+            return res.json({ohlcData, source: 'upstox'});
         }
     } catch(err){
         console.error("Error fetching Upstox data:", err);
@@ -52,9 +63,20 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
     try{
         const response = await getCurrentTradingDayCandleData({instrument_key, unit, interval: Number(interval)});
         const {data, status} = response;
+        const ohlcData = {
+            candles: data.data.candles.map((candle: any[]) => ({
+            timestamp: candle?.[0] ?? 0,
+            open: candle?.[1] ?? 0,
+            high: candle?.[2] ?? 0,
+            low: candle?.[3] ?? 0,
+            close: candle?.[4] ?? 0,
+            volume: candle?.[5] ?? 0,
+            derivativeCount: candle?.[6] ?? 0,
+            })),
+        };
         if(status === 200){
-            cache.set(cacheKey, data, ttl); 
-            return res.json({data, source: 'upstox'});
+            cache.set(cacheKey, ohlcData, ttl); 
+            return res.json({ohlcData, source: 'upstox'});
         }
     } catch(err){
         console.error("Error fetching Upstox data:", err);
