@@ -2,8 +2,6 @@ import {Request, Response, NextFunction} from 'express';
 import jwt from 'jsonwebtoken';
 import { CustomRequest, JwtPayload } from '../types/authTypes';
 
-
-
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     try{
         // 1. check cookie

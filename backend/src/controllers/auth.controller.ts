@@ -79,7 +79,7 @@ export const logoutUser = (req: Request, res: Response) => {
 }
 
 
-export const getUser = (req: Request, res: Response) => {
+export const getUser = async (req: Request, res: Response) => {
 const user = (req as CustomRequest).user;
 res.json({user: {userId: user.userId, email: user.email, name: user.name} });
 }   
