@@ -19,7 +19,7 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
     const cacheKey = `candle_data_${instrument_key}_${unit}_${interval}_${to_date}_${from_date || ''}`;
     const cachedData = cache.get(cacheKey);
     if(cachedData){
-        return res.json({data: cachedData, source: 'cache'});
+        return res.json({cachedData, source: 'cache'});
     }
     
     try{
@@ -42,6 +42,7 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
         }
     } catch(err){
         console.error("Error fetching Upstox data:", err);
+        res.status(500).json(err);
     }
 }
 
@@ -49,7 +50,6 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
     const instrument_key = req.query.instrument_key as string;
     const unit = req.query.unit as string;
     const interval = req.query.interval as string;
-
     if(!instrument_key || !unit || !interval || Number.isNaN(Number(interval))){
         return res.status(400).json({error: "Missing required parameters"});
     }
@@ -57,7 +57,7 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
     const cacheKey = `candle_data_today_${instrument_key}_${unit}_${interval}`;
     const cachedData = cache.get(cacheKey);
     if(cachedData){
-        return res.json({data: cachedData, source: 'cache'});
+        return res.json({cachedData, source: 'cache'});
     }
     
     try{
@@ -80,5 +80,6 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
         }
     } catch(err){
         console.error("Error fetching Upstox data:", err);
+        res.status(500).json(err);
     }
 }
