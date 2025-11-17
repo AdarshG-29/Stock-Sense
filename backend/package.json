@@ -5,6 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "ts-node src/migrations/init.ts",
+    "migrate:instruments": "ts-node src/migrations/create_market_instrument_table.ts",
+    "upload:instruments": "ts-node src/scripts/uploadInstruments.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts"
   },
   "keywords": [],
