@@ -2,9 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.route';
 import candleDataRoutes from './routes/candles.route';
+import instrumentRoutes from './routes/instruments.route';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { AUTH_ROUTE, CANDLES_ROUTE } from './config/apiPaths';
+import { AUTH_ROUTE, CANDLES_ROUTE, INSTRUMENTS_ROUTE } from './config/apiPaths';
 
 dotenv.config();
 const app = express();
@@ -20,6 +21,7 @@ app.use(cookieParser())
 const routes = [
     { path: AUTH_ROUTE, handler: authRoutes },
     { path: CANDLES_ROUTE, handler: candleDataRoutes },
+    { path: INSTRUMENTS_ROUTE, handler: instrumentRoutes }
 ];
 
 // Dynamically load routes for better scalability

@@ -33,7 +33,7 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
             low: candle?.[3] ?? 0,
             close: candle?.[4] ?? 0,
             volume: candle?.[5] ?? 0,
-            derivativeCount: candle?.[6] ?? 0,
+            openInterest: candle?.[6] ?? 0,
             })),
         };
         if(status === 200){
@@ -71,7 +71,7 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
             low: candle?.[3] ?? 0,
             close: candle?.[4] ?? 0,
             volume: candle?.[5] ?? 0,
-            derivativeCount: candle?.[6] ?? 0,
+            openInterest: candle?.[6] ?? 0,
             })),
         };
         if(status === 200){
