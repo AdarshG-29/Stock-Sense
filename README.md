@@ -39,9 +39,11 @@
     ```bash
     psql -U myuser -h localhost -d myappdb
     ```
-- **Create New Database**:  
+- **Create Tables or Run Scripts**:  
     ```bash
     npm run migrate
+    npm run migrate:instruments
+    npm run upload:instruments /Users/adarshg/Desktop/instrument_files/instruments.json
     ```
 - **Run Server**:  
     ```bash
