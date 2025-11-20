@@ -9,10 +9,6 @@ export const useSearchItem = () => {
 
     const { debounce } = useDebounce();
 
-    const onInputChange = (input: string) => {
-        setSearchInput(input);
-    };
-
     const getSearchItems = async (query: string) => {
         if (!query || query.trim() === "") {
             return;
@@ -28,12 +24,33 @@ export const useSearchItem = () => {
     const getDebouncedSearchItems = useCallback(debounce(getSearchItems, 300),[]);
 
     useEffect(() => {
+        return () => {
+            setSearchInput("");
+            setSearchResults([]);
+        };
+    }, []);
+
+    useEffect(() => {
+        if(searchInput.trim() === "" && searchResults.length > 0) {
+            setSearchResults([]);
+            return;
+        }
         getDebouncedSearchItems(searchInput);
     }, [searchInput, getDebouncedSearchItems]);
+
+    const onInputChange = (input: string) => {
+        setSearchInput(input);
+    };
+
+    const clearFields = () => {
+        setSearchInput("");
+        setSearchResults([]);
+    }
 
     return {
         searchInput,
         searchResults,
         onInputChange,
+        clearFields
     };
 };
