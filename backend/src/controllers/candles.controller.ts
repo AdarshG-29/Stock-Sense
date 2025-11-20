@@ -19,7 +19,7 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
     const cacheKey = `candle_data_${instrument_key}_${unit}_${interval}_${to_date}_${from_date || ''}`;
     const cachedData = cache.get(cacheKey);
     if(cachedData){
-        return res.json({cachedData, source: 'cache'});
+        return res.json({ohlcData: {...cachedData}, source: 'cache'});
     }
     
     try{
@@ -57,7 +57,7 @@ export const getTodayCandleData = async (req: Request, res: Response) => {
     const cacheKey = `candle_data_today_${instrument_key}_${unit}_${interval}`;
     const cachedData = cache.get(cacheKey);
     if(cachedData){
-        return res.json({cachedData, source: 'cache'});
+        return res.json({ohlcData: {...cachedData}, source: 'cache'});
     }
     
     try{
