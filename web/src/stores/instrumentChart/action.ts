@@ -2,11 +2,16 @@ import { OhlcCandleType } from "@/types/InstrumentChart";
 import { INITIAL_STATE, instrumentChartStore } from "./store";
 import { CANDLE_INTERVAL, CANDLE_INTERVAL_OPTIONS } from "@/constants/InstrumentChart";
 import { getHistoricalCandles, getTodayCandles } from "@/services/candles.api";
+import { dateFormatter } from "@/utils/helper";
 
 export const updateOhlcCandleData = async () => {
     const { instrumentKey, candleInterval, fromDate, toDate } = instrumentChartStore.getState();
     const { unit, interval } = CANDLE_INTERVAL_OPTIONS[candleInterval];
 
+    if(!instrumentKey) {
+        return;
+    }
+    
     instrumentChartStore.setState((state) => ({
         ...state,
         isLoading: true
@@ -22,8 +27,8 @@ export const updateOhlcCandleData = async () => {
             : 
             await getHistoricalCandles({
                 instrument_key: instrumentKey,
-                from_date: fromDate,
-                to_date: toDate,
+                from_date: dateFormatter(fromDate),
+                to_date: dateFormatter(toDate),
                 unit,
                 interval,
             })
@@ -77,11 +82,11 @@ export const updateCandleInterval = (candleInterval: CANDLE_INTERVAL) => {
     updateOhlcCandleData();
 };
 
-export const updateDateRange = (fromDate: string, toDate: string) => {
+export const updateDateRange = (fromDate: Date, toDate: Date) => {
     instrumentChartStore.setState((state) => ({
         ...state,
         fromDate,
-        toDate,
+        toDate
     }));
     updateOhlcCandleData();
 };

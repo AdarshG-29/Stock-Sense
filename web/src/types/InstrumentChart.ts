@@ -18,8 +18,8 @@ tradingSymbol: string;
 instrumentType: string;
 ohlc: OhlcCandleType[];
 candleInterval: CANDLE_INTERVAL;
-fromDate: string;
-toDate: string;
+fromDate: Date;
+toDate: Date;
 isLoading: boolean;
 isError: boolean;
 }

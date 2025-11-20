@@ -26,7 +26,7 @@ const InstrumentSelection = () => {
         <Input
           type="text"
           placeholder="Search for stocks..."
-          className="mt-4 w-full max-w-md"
+          className="mt-4 bg-white w-full max-w-md"
           value={searchInput}
           onChange={(e) => onInputChange(e.target.value)}
         />

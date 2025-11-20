@@ -15,7 +15,7 @@ const Header = () => {
     const userId = useUserDataStore.use.userId();
 
 return (
-    <header className="header flex justify-between items-center w-full px-4 py-8">
+    <header className="header flex justify-between bg-gradient-to-r from-blue-200 via-teal-200 to-green-200 items-center w-full px-4 py-8">
           <div className="header__logo text-xl font-bold">Stock-Sense</div>
           {userId 
           ? 
