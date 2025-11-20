@@ -16,6 +16,10 @@ export const getHistoricCandleData = async (req: Request, res: Response) => {
         return res.status(400).json({error: "Missing required parameters"});
     }
 
+    if (from_date && new Date(from_date) > new Date(to_date)) {
+        return res.status(400).json({ error: "starting date cannot be greater than ending date" });
+    }
+
     const cacheKey = `candle_data_${instrument_key}_${unit}_${interval}_${to_date}_${from_date || ''}`;
     const cachedData = cache.get(cacheKey);
     if(cachedData){
