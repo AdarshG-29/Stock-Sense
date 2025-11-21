@@ -2,7 +2,8 @@ import { OhlcCandleType } from "@/types/InstrumentChart";
 import { INITIAL_STATE, instrumentChartStore } from "./store";
 import { CANDLE_INTERVAL, CANDLE_INTERVAL_OPTIONS } from "@/constants/InstrumentChart";
 import { getHistoricalCandles, getTodayCandles } from "@/services/candles.api";
-import { dateFormatter } from "@/utils/helper";
+import { checkTodayDateRange, dateFormatter } from "@/utils/helper";
+import { toast } from "sonner";
 
 export const updateOhlcCandleData = async () => {
     const { instrumentKey, candleInterval, fromDate, toDate } = instrumentChartStore.getState();
@@ -17,8 +18,9 @@ export const updateOhlcCandleData = async () => {
         isLoading: true
     }));
     
+    console.log(fromDate, toDate)
     try {
-        const res = fromDate === toDate
+        const res = checkTodayDateRange(fromDate, toDate)
             ? await getTodayCandles({
                 instrument_key: instrumentKey,
                 unit,
@@ -39,7 +41,8 @@ export const updateOhlcCandleData = async () => {
             ohlc: (res?.data?.ohlcData?.candles ?? []) as OhlcCandleType[],
         }));
 
-    } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
 
         console.error("Error fetching historical candles:", error);
         instrumentChartStore.setState((state) => ({
@@ -47,6 +50,7 @@ export const updateOhlcCandleData = async () => {
             isError: true,
             isLoading: false
         }));
+        toast.error(error?.response?.data?.error || 'Error fetching candle data. Please try again.');
     }
 };
 
