@@ -1,4 +1,4 @@
-export enum CANDLE_INTERVAL{
+export enum CANDLE_INTERVAL {
     ONE_MINUTE = '1 minute',
     THREE_MINUTES = '3 minutes',
     FIVE_MINUTES = '5 minutes',
