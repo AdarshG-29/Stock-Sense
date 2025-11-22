@@ -18,7 +18,6 @@ export const updateOhlcCandleData = async () => {
         isLoading: true
     }));
     
-    console.log(fromDate, toDate)
     try {
         const res = checkTodayDateRange(fromDate, toDate)
             ? await getTodayCandles({

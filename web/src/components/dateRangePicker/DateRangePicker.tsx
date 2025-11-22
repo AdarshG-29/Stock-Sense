@@ -55,6 +55,8 @@ const DateRangePicker = ({
   }, [range, placeholder])
 
   return (
+    <div className="flex flex-col w-fit">
+    <label className="block text-sm font-medium text-gray-700 mb-1">Select Dates</label>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
@@ -84,6 +86,7 @@ const DateRangePicker = ({
         />
       </PopoverContent>
     </Popover>
+    </div>
   )
 }
 

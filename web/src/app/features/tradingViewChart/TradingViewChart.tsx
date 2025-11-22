@@ -30,7 +30,7 @@ const TradingViewChart = (props: Props) => {
         if (!chartContainerRef.current) return;
 
         const chart = initializeChart(chartContainerRef.current);
-        const candlestickSeries = setupCandlestickSeries(chart, candleData);
+        setupCandlestickSeries(chart, candleData);
         const volumeSeries = setupVolumeSeries(chart, volumeData);
 
         const handleResize = () => {
