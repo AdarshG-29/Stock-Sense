@@ -33,13 +33,13 @@ const TradingViewChart = (props: Props) => {
         setupCandlestickSeries(chart, candleData);
         const volumeSeries = setupVolumeSeries(chart, volumeData);
 
+        chart.subscribeCrosshairMove((param) => handleCrosshairMove(param, volumeSeries));
+        
         const handleResize = () => {
             if (chartContainerRef.current) {
                 chart.applyOptions({ width: chartContainerRef.current.clientWidth });
             }
         };
-
-        chart.subscribeCrosshairMove((param) => handleCrosshairMove(param, volumeSeries));
 
         window.addEventListener('resize', handleResize);
 
@@ -111,7 +111,7 @@ const TradingViewChart = (props: Props) => {
     ) => {
         if (param.seriesData.size) {
             const volume = param.seriesData.get(volumeSeries);
-            if (volume && 'value' in volume) {
+            if (volume && 'value' in volume && volume.value > 0) {
                 setVolumeInfo({ volume: volume.value, color: volume.color });
             }
         }

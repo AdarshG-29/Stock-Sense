@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import InstrumentSelection from '../../../components/instrumentSelection/InstrumentSelection';
 import { useInstrumentChartStore } from '@/stores/instrumentChart/store';
 import DateRangePicker from '@/components/dateRangePicker/DateRangePicker';
 import { DateRange } from 'react-day-picker';
-import { updateCandleInterval, updateDateRange } from '@/stores/instrumentChart/action';
+import { setInstrumentData, updateCandleInterval, updateDateRange } from '@/stores/instrumentChart/action';
 import Chart from './Chart';
 import Dropdown from '@/components/dropdown/Dropdown';
-import { CANDLE_INTERVAL } from '@/constants/InstrumentChart';
+import { CANDLE_INTERVAL, NIFTY_INSTRUMENT_INFO } from '@/constants/InstrumentChart';
 
 const ChartScreen = () => {
     const instrumentName = useInstrumentChartStore.use.instrumentName();
@@ -15,6 +15,16 @@ const ChartScreen = () => {
     const fromDate = useInstrumentChartStore.use.fromDate();
     const toDate = useInstrumentChartStore.use.toDate();
     const candleInterval = useInstrumentChartStore.use.candleInterval();
+
+    useEffect(() => {
+        setInstrumentData(
+            {instrument_key: NIFTY_INSTRUMENT_INFO.instrument_key,
+            instrument_type: NIFTY_INSTRUMENT_INFO.instrument_type,
+            trading_symbol: NIFTY_INSTRUMENT_INFO.trading_symbol,
+            exchange: NIFTY_INSTRUMENT_INFO.exchange,
+            name: NIFTY_INSTRUMENT_INFO.name
+    });
+    },[])
 
     const handleDateChange = (range: DateRange | undefined) => {
         updateDateRange(range?.from || new Date(), range?.to || new Date());
