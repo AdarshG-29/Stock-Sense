@@ -53,3 +53,11 @@ export const CANDLE_INTERVAL_OPTIONS = {
         interval: 1,
     }
 };
+
+export const NIFTY_INSTRUMENT_INFO = {
+    instrument_key: 'NSE_INDEX|Nifty 50',
+    trading_symbol: 'NIFTY',
+    exchange: 'NSE',
+    name: 'Nifty 50',
+    instrument_type: 'INDEX'
+}
