@@ -1,4 +1,5 @@
 import { VOLUME_COLOR_CONSTANTS } from "@/constants/chart";
+import { CANDLE_INTERVAL } from "@/constants/InstrumentChart";
 import { OhlcCandleType } from "@/types/InstrumentChart";
 import { UTCTimestamp } from "lightweight-charts";
 
@@ -15,6 +16,19 @@ export const checkIfDateIsToday = (date: Date): boolean => {
   );
 };
 
+export const checkCandleIntervalForToday = (candleInterval: CANDLE_INTERVAL) => {
+  const intervalsMoreThanADay = [
+    CANDLE_INTERVAL.ONE_MINUTE,
+    CANDLE_INTERVAL.THREE_MINUTES,
+    CANDLE_INTERVAL.THIRTY_MINUTES,
+    CANDLE_INTERVAL.FIVE_MINUTES,
+    CANDLE_INTERVAL.FIFTEEN_MINUTES,
+    CANDLE_INTERVAL.ONE_HOUR,
+    CANDLE_INTERVAL.FOUR_HOURS,
+  ];
+  return intervalsMoreThanADay.includes(candleInterval);
+}
+
 export const checkTodayDateRange = (fromDate: Date, toDate: Date): boolean => {
   return checkIfDateIsToday(fromDate) && checkIfDateIsToday(toDate);
 };
@@ -27,26 +41,42 @@ export const getUtcTimeStamp = (timestamp: string): UTCTimestamp => {
   return Math.floor(new Date(timestamp).getTime() / 1000) as UTCTimestamp; // Convert to seconds
 };
 
-export const formatOhlcDataIntoChartData = (ohlcData: OhlcCandleType[]) => {
+export const formatOhlcData = (ohlcData: any): OhlcCandleType[] => {
+  if(!ohlcData || !Array.isArray(ohlcData)) {
+    return [];
+  }
   return ohlcData
     .map((item) => ({
-      time: getUtcTimeStamp(item.timestamp),
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      close: item.close,
+      timeStamp: getUtcTimeStamp(item?.timestamp ?? ''),
+      open: item?.open ?? 0,
+      high: item?.high ?? 0,
+      low: item?.low ?? 0,
+      close: item?.close ?? 0,
+      volume: item?.volume ?? 0,
+      openInterest: item?.openInterest ?? 0,
     }))
-    .sort((a, b) => a.time - b.time);
+    .sort((a, b) => a.timeStamp - b.timeStamp);
 };
 
-export const formatVolumeDataIntoChartData = (ohlcData: OhlcCandleType[]) => {
-  return ohlcData
-    .map((item) => ({
-      time: getUtcTimeStamp(item.timestamp),
-      value: item.volume,
-      color: item.close >= item.open ? VOLUME_COLOR_CONSTANTS.BAR_UP_COLOR : VOLUME_COLOR_CONSTANTS.BAR_DOWN_COLOR,
-    }))
-    .sort((a, b) => a.time - b.time);
+export const formatOhlcDataIntoChartData = (ohlcData: OhlcCandleType) => {
+  const { timeStamp, open, high, low, close } = ohlcData;
+  return ({
+      time: timeStamp,
+      open: open,
+      high: high,
+      low: low,
+      close: close,
+    })
+}
+
+export const formatVolumeDataIntoChartData = (ohlcData: OhlcCandleType) => {
+  const { timeStamp, open, close, volume } = ohlcData;
+ 
+  return ({
+      time: timeStamp,
+      value: volume,
+      color: close >= open ? VOLUME_COLOR_CONSTANTS.BAR_UP_COLOR : VOLUME_COLOR_CONSTANTS.BAR_DOWN_COLOR,
+    })
 };
 
 export const getformattedVolume = (volume: number): string => {

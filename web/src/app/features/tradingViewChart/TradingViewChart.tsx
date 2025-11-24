@@ -1,42 +1,53 @@
 import { VOLUME_COLOR_CONSTANTS } from '@/constants/chart';
-import { getformattedVolume, getLocalTimeStamp } from '@/utils/helper';
+import { OhlcCandleType } from '@/types/InstrumentChart';
+import {
+    formatOhlcDataIntoChartData,
+    formatVolumeDataIntoChartData,
+    getformattedVolume,
+    getLocalTimeStamp,
+} from '@/utils/helper';
 import {
     createChart,
     ColorType,
     CandlestickSeries,
-    Time,
     HistogramSeries,
-    MouseEventParams,
+    ISeriesApi,
 } from 'lightweight-charts';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = {
-    candleData: { time: Time; open: number; high: number; low: number; close: number }[];
-    colors?: {
-        backgroundColor?: string;
-        textColor?: string;
-    };
-    volumeData: { time: Time; value: number; color?: string }[];
+    ohlcData: OhlcCandleType[];
+    timeStampIndex: number | null;
+    isPlaying: boolean;
+    resetChart: boolean;
+    stopReplay: () => void;
+    isBacktestEnable: boolean;
 };
 
 const TradingViewChart = (props: Props) => {
     const [volumeInfo, setVolumeInfo] = useState<{ volume: number; color: string | undefined } | null>(null);
+    const [hoveredTime, setHoveredTime] = useState<number | null>(null);
+    const [xPosition, setXPosition] = useState<number | null>(null);
 
-    const { candleData, volumeData } = props;
-
+    const { isPlaying, timeStampIndex, ohlcData, stopReplay, resetChart, isBacktestEnable } = props;
+    
+    const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const chartContainerRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
+    const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+    const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
     useEffect(() => {
         if (!chartContainerRef.current) return;
-
-        const chart = initializeChart(chartContainerRef.current);
-        setupCandlestickSeries(chart, candleData);
-        const volumeSeries = setupVolumeSeries(chart, volumeData);
-
-        chart.subscribeCrosshairMove((param) => handleCrosshairMove(param, volumeSeries));
         
+        const chart = initializeChart();
+        setupCandlestickSeries();
+        setupVolumeSeries();
+        handleCrosshairMove();
+        addVerticalLineCrossshairMove();
+
         const handleResize = () => {
-            if (chartContainerRef.current) {
+            if (chartContainerRef.current && chart) {
                 chart.applyOptions({ width: chartContainerRef.current.clientWidth });
             }
         };
@@ -45,12 +56,28 @@ const TradingViewChart = (props: Props) => {
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            chart.remove();
             setVolumeInfo(null);
+            clearIntervalIfExists();
+            removeChart();
         };
-    }, [candleData, volumeData]);
 
-    const initializeChart = (container: HTMLDivElement) => {
+    },[ohlcData])
+
+    useEffect(() => {
+            handlePlayback();
+    },[isPlaying])
+
+    useEffect(() => {
+            popCandles();
+    }, [timeStampIndex]);
+
+    useEffect(() => {
+        resetCandles();
+    },[resetChart])
+
+    const initializeChart = () => {
+        const container = chartContainerRef.current;
+        if (!container) return;
         const chart = createChart(container, {
             layout: {
                 background: { type: ColorType.Solid },
@@ -68,10 +95,23 @@ const TradingViewChart = (props: Props) => {
                 timeFormatter: getLocalTimeStamp,
             },
         });
+        chartRef.current = chart;
         return chart;
     };
 
-    const setupCandlestickSeries = (chart: ReturnType<typeof createChart>, data: Props['candleData']) => {
+    const removeChart = () => {
+        const chart = chartRef.current;
+        if (chart) {
+            chart.remove();
+            chartRef.current = null;
+        }
+    }
+
+    const setupCandlestickSeries = () => {
+        const chart = chartRef.current
+        if(!chart)
+            return;
+
         const candlestickSeries = chart.addSeries(CandlestickSeries, {
             priceScaleId: 'right',
             priceFormat: {
@@ -84,11 +124,16 @@ const TradingViewChart = (props: Props) => {
                 bottom: 0.4,
             },
         });
-        candlestickSeries.setData(data);
+        candlestickSeries.setData(ohlcData.map(formatOhlcDataIntoChartData));
+        candleSeriesRef.current = candlestickSeries;
         return candlestickSeries;
     };
 
-    const setupVolumeSeries = (chart: ReturnType<typeof createChart>, data: Props['volumeData']) => {
+    const setupVolumeSeries = () => {
+        const chart = chartRef.current
+        if(!chart)
+            return;
+
         const volumeSeries = chart.addSeries(HistogramSeries, {
             priceScaleId: 'volume',
             priceFormat: {
@@ -101,40 +146,130 @@ const TradingViewChart = (props: Props) => {
                 bottom: 0,
             },
         });
-        volumeSeries.setData(data);
+        volumeSeries.setData(ohlcData.map(formatVolumeDataIntoChartData));
+        volumeSeriesRef.current = volumeSeries;
         return volumeSeries;
     };
 
     const handleCrosshairMove = (
-        param: MouseEventParams<Time>,
-        volumeSeries: ReturnType<typeof setupVolumeSeries>
     ) => {
-        if (param.seriesData.size) {
-            const volume = param.seriesData.get(volumeSeries);
-            if (volume && 'value' in volume && volume.value > 0) {
-                setVolumeInfo({ volume: volume.value, color: volume.color });
+        const chart = chartRef.current;
+        const volumeSeries = volumeSeriesRef.current;
+
+        if(!chart || !volumeSeries)
+            return;
+
+        chart.subscribeCrosshairMove((param) => {
+            if (param.seriesData.size) {
+                const volume = param.seriesData.get(volumeSeries);
+                if (volume && 'value' in volume && volume.value > 0) {
+                    setVolumeInfo({ volume: volume.value, color: volume.color });
+                }
             }
+        })
+    };
+
+    const clearIntervalIfExists = () => {
+        if (playbackIntervalRef.current) {
+            clearInterval(playbackIntervalRef.current);
         }
     };
 
+    const popCandles = () => {
+        const candleSeries = candleSeriesRef.current;
+        const volumeSeries = volumeSeriesRef.current;
+
+        if(!candleSeries || !volumeSeries || timeStampIndex === null) return;
+        const popCount = candleSeries.data().length - timeStampIndex - 1;
+        if(popCount < 0) return;
+        candleSeries.pop(popCount);
+        volumeSeries.pop(popCount);
+    }
+
+    const handlePlayback = () => {
+        const candleSeries = candleSeriesRef.current;
+        const volumeSeries = volumeSeriesRef.current;
+
+        if (!isPlaying || timeStampIndex === null || !candleSeries || !volumeSeries) {
+            clearIntervalIfExists();
+            return;
+        }
+
+        let currentIndex = timeStampIndex;
+        playbackIntervalRef.current = setInterval(() => {
+
+            if (currentIndex >= ohlcData.length - 1) {
+                clearIntervalIfExists();
+                currentIndex = 0;
+                stopReplay();
+                return;
+            }
+            const newData = ohlcData[currentIndex + 1];
+            candleSeries.update(formatOhlcDataIntoChartData(newData));
+            volumeSeries.update(formatVolumeDataIntoChartData(newData));
+            currentIndex += 1;
+        }, 500);
+    };
+
+    const resetCandles = () => {
+        const candleSeries = candleSeriesRef.current;
+        const volumeSeries = volumeSeriesRef.current;
+
+        if(!candleSeries || !volumeSeries || !resetChart) return;
+        clearIntervalIfExists();
+        candleSeries.setData(ohlcData.map(formatOhlcDataIntoChartData));
+        volumeSeries.setData(ohlcData.map(formatVolumeDataIntoChartData));
+    }
+
+    const addVerticalLineCrossshairMove = () => {
+        const chart = chartRef.current;
+        const candleSeries = candleSeriesRef.current;
+
+        if (!chart || !candleSeries) return;
+
+        chart.subscribeCrosshairMove((param) => {
+            const {logical, point} = param;
+            if(
+                logical === undefined || 
+                point === undefined ||
+                 logical<0 ||
+                  logical >= candleSeries.data().length || 
+                  !isBacktestEnable
+                ) {
+                setHoveredTime(null);
+                setXPosition(null);
+                return;
+            }
+                setHoveredTime(logical);
+                setXPosition(point.x);
+        });
+    };
     return (
-        <div ref={chartContainerRef} className="relative w-full">
+        <div ref={chartContainerRef} className="relative w-full h-full">
             {volumeInfo?.volume && (
-                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10 font-bold text-sm">
-                    <span>Vol: </span>
-                    <span
-                        className="font-semibold"
-                        style={{
-                            color:
-                                volumeInfo?.color === VOLUME_COLOR_CONSTANTS.BAR_UP_COLOR
-                                    ? VOLUME_COLOR_CONSTANTS.TEXT_UP_COLOR
-                                    : VOLUME_COLOR_CONSTANTS.TEXT_DOWN_COLOR,
-                        }}
-                    >
-                        {getformattedVolume(volumeInfo.volume)}
-                    </span>
-                </div>
+            <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-10 font-bold text-sm">
+                <span>Vol: </span>
+                <span
+                className="font-semibold"
+                style={{
+                    color:
+                    volumeInfo?.color === VOLUME_COLOR_CONSTANTS.BAR_UP_COLOR
+                        ? VOLUME_COLOR_CONSTANTS.TEXT_UP_COLOR
+                        : VOLUME_COLOR_CONSTANTS.TEXT_DOWN_COLOR,
+                }}
+                >
+                {getformattedVolume(volumeInfo.volume)}
+                </span>
+            </div>
             )}
+            {
+            hoveredTime && xPosition !== null && isBacktestEnable &&(
+                <div
+                className="absolute top-0 h-full w-[1px] pointer-events-none"
+                style={{ left: xPosition, top: 0, bottom: 0, border: '1px solid blue', zIndex: 10 }}
+                />
+            )
+            }
         </div>
     );
 };

@@ -1,4 +1,5 @@
 import { CANDLE_INTERVAL } from "@/constants/InstrumentChart";
+import { UTCTimestamp } from "lightweight-charts";
 
 export type OhlcCandleType = {
 close: number;
@@ -6,7 +7,7 @@ open: number;
 high: number;
 low: number;
 volume: number;
-timestamp: string;
+timeStamp: UTCTimestamp;
 openInterest: number;
 }
 

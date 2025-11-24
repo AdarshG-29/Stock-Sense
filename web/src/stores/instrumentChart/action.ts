@@ -2,7 +2,7 @@ import { OhlcCandleType } from "@/types/InstrumentChart";
 import { INITIAL_STATE, instrumentChartStore } from "./store";
 import { CANDLE_INTERVAL, CANDLE_INTERVAL_OPTIONS } from "@/constants/InstrumentChart";
 import { getHistoricalCandles, getTodayCandles } from "@/services/candles.api";
-import { checkTodayDateRange, dateFormatter } from "@/utils/helper";
+import { checkCandleIntervalForToday, checkTodayDateRange, dateFormatter, formatOhlcData } from "@/utils/helper";
 import { toast } from "sonner";
 
 export const updateOhlcCandleData = async () => {
@@ -15,11 +15,12 @@ export const updateOhlcCandleData = async () => {
     
     instrumentChartStore.setState((state) => ({
         ...state,
-        isLoading: true
+        isLoading: true,
+        isError: false
     }));
     
     try {
-        const res = checkTodayDateRange(fromDate, toDate)
+        const res = checkTodayDateRange(fromDate, toDate) && checkCandleIntervalForToday(candleInterval)
             ? await getTodayCandles({
                 instrument_key: instrumentKey,
                 unit,
@@ -37,7 +38,7 @@ export const updateOhlcCandleData = async () => {
         instrumentChartStore.setState((state) => ({
             ...state,
             isLoading: false,
-            ohlc: (res?.data?.ohlcData?.candles ?? []) as OhlcCandleType[],
+            ohlc: formatOhlcData(res?.data?.ohlcData?.candles ?? []),
         }));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
