@@ -7,6 +7,10 @@ import { setInstrumentData, updateCandleInterval, updateDateRange } from '@/stor
 import Chart from './Chart';
 import Dropdown from '@/components/dropdown/Dropdown';
 import { CANDLE_INTERVAL, NIFTY_INSTRUMENT_INFO } from '@/constants/InstrumentChart';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useBackTestStore } from '@/stores/backTestStore/store';
+import { backTestToggle } from '@/stores/backTestStore/action';
 
 const ChartScreen = () => {
     const instrumentName = useInstrumentChartStore.use.instrumentName();
@@ -15,6 +19,7 @@ const ChartScreen = () => {
     const fromDate = useInstrumentChartStore.use.fromDate();
     const toDate = useInstrumentChartStore.use.toDate();
     const candleInterval = useInstrumentChartStore.use.candleInterval();
+    const isBacktestEnable = useBackTestStore.use.isBacktestEnable();
 
     useEffect(() => {
         setInstrumentData(
@@ -50,6 +55,11 @@ const ChartScreen = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-6">
+                    <div className='flex items-center space-x-2 pt-5'>
+                        <Label>Enable Backtest</Label>
+                        <Switch checked={isBacktestEnable}
+                        onCheckedChange={backTestToggle}/>
+                    </div>
                     <InstrumentSelection />
                     <DateRangePicker
                         value={{ from: fromDate, to: toDate }}
