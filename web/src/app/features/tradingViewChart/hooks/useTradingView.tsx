@@ -240,7 +240,7 @@ export const useTradingView = () => {
             logical === undefined ||
             point === undefined ||
             logical < 0 ||
-            logical >= candleSeries.data().length ||
+            logical >= candleSeries.data().length -1 ||
             !isBacktestEnable ||
             timeStampIndex !== null ||
             lockChartRef.current
@@ -256,7 +256,7 @@ export const useTradingView = () => {
         if (
             logical === undefined ||
             logical < 0 ||
-            logical >= candleSeries.data().length ||
+            logical >= candleSeries.data().length - 1 ||
             !isBacktestEnable ||
             timeStampIndex !== null ||
             lockChartRef.current
